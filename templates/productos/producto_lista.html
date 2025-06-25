@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Lista de Productos{% endblock %}
+{% block content %}
+<h2 class="mb-4">Lista de Productos</h2>
+
+<div class="table-responsive">
+    <table class="table table-bordered mb-4">
+        <thead class="table-light">
+            <tr>
+                <th>Nombre</th>
+                <th>SKU</th>
+                <th>Precio</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if productos %}
+                {% for producto in productos %}
+                    <tr>
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.sku }}</td>
+                        <td>S/. {{ producto.precio|floatformat:2 }}</td>
+                        <td>{{ producto.descripcion|default:"-" }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No hay productos registrados.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{% url 'productos:producto_crear' %}" class="btn btn-success">Nuevo Producto</a>
+
+{% endblock %}

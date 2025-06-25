@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Cargar Productos Masivamente{% endblock %}
+{% block content %}
+<h2 class="mb-4">Cargar Productos Masivamente</h2>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <p>Sube un archivo CSV o Excel con los siguientes campos:</p>
+        <pre><code>nombre,sku,precio,descripcion</code></pre>
+        <p>Puedes descargar un ejemplo <a href="{% url 'productos:descargar_ejemplo' %}">aquí</a>.</p>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" action="{% url 'productos:carga_masiva_productos' %}">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="archivo_csv" class="form-label">Selecciona un archivo CSV o Excel (.csv, .xlsx)</label>
+        <input type="file" name="archivo_csv" id="archivo_csv" class="form-control" accept=".csv,.xlsx" required>
+    </div>
+    <button type="submit" class="btn btn-success">Cargar Productos</button>
+</form>
+{% endblock %}

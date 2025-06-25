@@ -1,0 +1,70 @@
+{% load group_tags %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Plataforma Pedidos NATIVA</a>
+
+        <!-- Botón hamburguesa para móviles -->
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menú colapsable -->
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+
+
+                {% if user.is_superuser or user|has_group:"Administrador" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <!-- Solo visible para todos -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'productos:producto_list' %}">
+                        <i class="bi bi-box-seam me-1"></i> Productos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'pedidos:pedido_crear' %}">
+                        <i class="bi bi-cart-plus me-1"></i> Nuevo Pedido
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'historial:pedido_historial' %}">
+                        <i class="bi bi-receipt me-1"></i> Historial de Pedidos
+                    </a>
+                </li>
+
+                <!-- Solo visible si es superusuario -->
+                {% if user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'productos:carga_masiva_productos' %}">
+                            <i class="bi bi-cloud-upload me-1"></i> Carga Masiva
+                        </a>
+                    </li>
+                {% endif %}
+
+
+
+
+
+
+            </ul>
+
+            <!-- Botón de sesión -->
+            <form class="d-flex ms-auto" action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light">Cerrar Sesión</button>
+            </form>
+        </div>
+    </div>
+</nav>

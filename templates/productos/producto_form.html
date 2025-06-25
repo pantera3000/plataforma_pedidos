@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}{% if form.instance.pk %}Editar Producto{% else %}Nuevo Producto{% endif %}{% endblock %}
+{% block content %}
+
+<!-- Mostrar mensajes -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} d-flex align-items-center mb-4" role="alert">
+            {% if message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill me-2"></i>
+            {% elif message.tags == 'error' %}
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% else %}
+                <i class="bi bi-info-circle-fill me-2"></i>
+            {% endif %}
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<h2 class="mb-4">{% if form.instance.pk %}Editar Producto{% else %}Nuevo Producto{% endif %}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <!-- Campos en dos columnas -->
+    <div class="row g-3">
+
+        <!-- Nombre del producto -->
+        <div class="col-md-6 mb-3">
+            <label class="form-label">{{ form.nombre.label }}</label>
+            <input type="text"
+                   name="{{ form.nombre.name }}"
+                   id="{{ form.nombre.id_for_label }}"
+                   value="{{ form.nombre.value|default_if_none:'' }}"
+                   class="form-control"
+                   placeholder="Nombre del producto"
+                   required>
+            {% if form.nombre.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.nombre.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- SKU -->
+        <div class="col-md-6 mb-3">
+            <label class="form-label">{{ form.sku.label }}</label>
+            <input type="text"
+                   name="{{ form.sku.name }}"
+                   id="{{ form.sku.id_for_label }}"
+                   value="{{ form.sku.value|default_if_none:'' }}"
+                   class="form-control"
+                   placeholder="Ej: LAP123"
+                   required>
+            {% if form.sku.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.sku.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Precio -->
+        <div class="col-md-6 mb-3">
+            <label class="form-label">{{ form.precio.label }}</label>
+            <div class="input-group has-validation">
+                <span class="input-group-text">S/.</span>
+                <input type="number"
+                       step="0.01"
+                       min="0"
+                       name="{{ form.precio.name }}"
+                       id="{{ form.precio.id_for_label }}"
+                       value="{{ form.precio.value|default_if_none:'' }}"
+                       class="form-control"
+                       required>
+            </div>
+            {% if form.precio.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.precio.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Descripción -->
+        <div class="col-md-6 mb-3">
+            <label class="form-label">{{ form.descripcion.label }}</label>
+            <textarea name="{{ form.descripcion.name }}"
+                      id="{{ form.descripcion.id_for_label }}"
+                      class="form-control"
+                      rows="3"
+                      placeholder="Descripción del producto...">{{ form.descripcion.value|default_if_none:'' }}</textarea>
+            {% if form.descripcion.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.descripcion.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="d-flex justify-content-between mt-3">
+        <a href="{% url 'productos:producto_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle me-2"></i>Volver a la lista
+        </a>
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-save me-2"></i>
+            {% if form.instance.pk %}
+                Guardar Cambios
+            {% else %}
+                Crear Producto
+            {% endif %}
+        </button>
+    </div>
+</form>
+
+<!-- Bootstrap Icons (si no lo tienes en base.html) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"> 
+
+{% endblock %}

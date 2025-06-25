@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Detalle del Pedido #{{ pedido.id }}{% endblock %}
+{% load group_tags %}
+{% block content %}
+
+<!-- Mostrar mensajes -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} d-flex align-items-center mb-4" role="alert">
+            {% if message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill me-2"></i>
+            {% elif message.tags == 'error' %}
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% else %}
+                <i class="bi bi-info-circle-fill me-2"></i>
+            {% endif %}
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<h2>Detalle del Pedido #{{ pedido.id }}</h2>
+
+<!-- Datos del cliente -->
+<div class="card mb-4 shadow-sm border-0">
+    <div class="card-header bg-primary text-white">
+        Datos del Cliente
+    </div>
+    <div class="card-body">
+        <p><strong>Nombre:</strong> {{ pedido.cliente_nombre }}</p>
+        <p><strong>DNI/RUC:</strong> {{ pedido.cliente_dni|default:"-" }}</p>
+        <p><strong>Dirección:</strong> {{ pedido.direccion|default:"-" }}</p>
+        <p><strong>Tipo de Comprobante:</strong> {{ pedido.tipo_comprobante|default:"-" }}</p>
+        <p><strong>Notas:</strong> {{ pedido.notas|default:"Sin notas" }}</p>
+    </div>
+</div>
+
+<!-- Resumen de productos -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        Resumen de Productos
+    </div>
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0">Productos Seleccionados</h5>
+            <small class="text-white-50">Total: {{ detalles|length }} productos</small>
+        </div>
+        <span class="badge bg-light text-dark fs-5">
+            {{ detalles|length }}
+        </span>
+    </div>
+</div>
+
+
+
+<!-- Productos solicitados -->
+<h4 class="mb-3">Productos Solicitados</h4>
+
+<!-- Tabla para escritorio -->
+<div class="table-responsive d-none d-md-block">
+    <table class="table table-bordered bg-light mb-4">
+        <thead class="table-light">
+            <tr>
+                <th>Producto</th>
+                <th>Precio Unitario</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if detalles %}
+                {% for detalle in detalles %}
+                    <tr>
+                        <td>{{ detalle.producto.nombre }}</td>
+                        <td>S/. {{ detalle.producto.precio|floatformat:2 }}</td> <!-- ✅ Aquí mostramos el precio del producto -->
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>S/. {{ detalle.subtotal|floatformat:2 }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No hay productos en este pedido.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Tarjetas para móvil -->
+<div class="d-block d-md-none">
+    {% if detalles %}
+        {% for detalle in detalles %}
+            <div class="card border mb-3">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="m-0 fw-bold">{{ detalle.producto.nombre }}</h6>
+                            <small class="text-muted">SKU: {{ detalle.producto.sku }}</small>
+                        </div>
+                        <div class="text-end">
+                            <p class="m-0"><strong>Cantidad:</strong> {{ detalle.cantidad }}</p>
+                            <p class="m-0"><strong>Precio:</strong> S/. {{ detalle.producto.precio|floatformat:2 }}</p>
+                            <p class="m-0 text-success"><strong>Subtotal:</strong> S/. {{ detalle.subtotal|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info mt-3" role="alert">
+            Este pedido no tiene productos asociados.
+        </div>
+    {% endif %}
+</div>
+
+<!-- Total general -->
+<div class="d-flex justify-content-end mb-4">
+    <h5>Total: <strong>S/. {{ pedido.total|floatformat:2 }}</strong></h5>
+</div>
+
+<!-- Botones de acción -->
+<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <a href="{% url 'historial:pedido_historial' %}" class="btn btn-secondary w-100 w-md-auto me-md-2">Volver al Historial</a>
+
+
+    <!-- {% if not user|has_group:"Vendedor" %}
+        <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-warning btn-sm w-100 w-md-auto me-md-2">Editar</a>
+    {% endif %} -->
+
+    <!-- ✅ El botón solo se muestra si NO es Vendedor ni Lector -->
+    {% if not user|has_group:"Vendedor" and not user|has_group:"Lector" %}
+        <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-warning btn-sm w-100 w-md-auto me-md-2">Editar</a>
+    {% endif %}
+
+    <!-- {% if not user|has_group:"Lector" %}
+        <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-warning btn-sm w-100 w-md-auto me-md-2">Editar</a>
+    {% endif %} -->
+
+    
+    {% if not user|has_group:"Vendedor" and not user|has_group:"Lector" %}
+        <form method="post" action="{% url 'pedidos:pedido_eliminar' pedido.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm w-100 w-md-auto" onclick="return confirm('¿Estás seguro?')">Eliminar Pedido</button>
+        </form>
+    {% endif %}
+</div>
+
+
+
+
+{% endblock %}

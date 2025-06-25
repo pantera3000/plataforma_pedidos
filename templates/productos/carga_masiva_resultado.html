@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Resultado Carga Masiva{% endblock %}
+{% block content %}
+<h2 class="mb-4">Resultado de Carga Masiva</h2>
+
+<!-- Mensaje de éxito -->
+{% if nuevos %}
+    <div class="alert alert-success" role="alert">
+        {{ nuevos|length }} productos cargados correctamente.
+    </div>
+{% endif %}
+
+<!-- Errores -->
+{% if errores %}
+    <div class="alert alert-warning" role="alert">
+        {{ errores|length }} errores encontrados:
+        <ul class="mb-0 ps-4">
+            {% for error in errores %}
+                <li>Fila {{ error.fila }}: {{ error.error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+{% endif %}
+
+<a href="{% url 'productos:carga_masiva_productos' %}" class="btn btn-primary me-2">Volver a Cargar</a>
+<a href="{% url 'productos:producto_lista' %}" class="btn btn-secondary">Ver Productos</a>
+{% endblock %}

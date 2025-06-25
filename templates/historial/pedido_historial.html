@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% load group_tags %}
+{% block title %}Historial de Pedidos{% endblock %}
+{% block content %}
+
+<!-- Mostrar mensajes -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} d-flex align-items-center mb-4" role="alert">
+            {% if message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill me-2"></i>
+            {% elif message.tags == 'error' %}
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% else %}
+                <i class="bi bi-info-circle-fill me-2"></i>
+            {% endif %}
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<h2 class="mb-4">Historial de Pedidos</h2>
+
+<!-- Filtros -->
+<form method="get" class="mb-4">
+    <div class="row g-3">
+        <!-- Buscar por ID -->
+        <div class="col-12 col-md-3">
+            <label class="form-label">Buscar por ID</label>
+            <input type="text"
+                   name="id_pedido"
+                   class="form-control"
+                   value="{{ id_pedido|default:'' }}"
+                   placeholder="Ej: 123">
+        </div>
+
+        <!-- Buscar por cliente o DNI -->
+        <div class="col-12 col-md-3">
+            <label class="form-label">Cliente o DNI</label>
+            <input type="text"
+                   name="cliente"
+                   class="form-control"
+                   value="{{ cliente|default:'' }}"
+                   placeholder="Nombre o DNI">
+        </div>
+
+        <!-- Fecha inicio -->
+        <div class="col-12 col-md-3">
+            <label class="form-label">Fecha inicio</label>
+            <input type="date"
+                   name="fecha_inicio"
+                   class="form-control"
+                   value="{{ fecha_inicio|default:'' }}">
+        </div>
+
+        <!-- Fecha fin -->
+        <div class="col-12 col-md-3">
+            <label class="form-label">Fecha fin</label>
+            <input type="date"
+                   name="fecha_fin"
+                   class="form-control"
+                   value="{{ fecha_fin|default:'' }}">
+        </div>
+
+        <!-- Buscar por día -->
+        <div class="col-12 col-md-3 mt-2">
+            <label class="form-label">Buscar por día</label>
+            <input type="date"
+                   name="fecha_dia"
+                   class="form-control"
+                   value="{{ fecha_dia|default:'' }}">
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="mt-3 d-grid gap-2 d-md-flex">
+        <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+        <a href="{% url 'historial:pedido_historial' %}" class="btn btn-outline-secondary">Limpiar búsqueda</a>
+        <a href="{% url 'historial:exportar_pedidos' %}" class="btn btn-success">
+            <i class="bi bi-download me-2"></i> Descargar Pedidos
+        </a>
+    </div>
+</form>
+
+<!-- Tabla responsive para escritorio -->
+<div class="table-responsive d-none d-md-block">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>DNI</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Comprobante</th>
+                <th>Cant. Tipo Productos</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in page_obj %}
+                <tr>
+                    <td>#{{ pedido.id }}</td>
+                    <td>{{ pedido.cliente_nombre }}</td>
+                    <td>{{ pedido.cliente_dni }}</td>
+                    <td>{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
+                    <td>S/. {{ pedido.total|floatformat:2 }}</td>
+                    <td>{{ pedido.tipo_comprobante }}</td>
+                    <td>{{ pedido.detallepedido_set.count }}</td>
+                    <!-- <td class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn btn-sm btn-info w-100 w-md-auto">
+                            <i class="bi bi-eye"></i> Ver
+                        </a>
+                        {% if not user|has_group:"Lector" %}
+                            <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-sm btn-warning w-100 w-md-auto">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <form method="post" action="{% url 'pedidos:pedido_eliminar' pedido.id %}" class="w-100 w-md-auto m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger w-100 w-md-auto" onclick="return confirm('¿Estás seguro?')">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        {% endif %}
+                    </td> -->
+                    <td class="d-flex gap-2 flex-wrap">
+                        <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i> Ver
+                        </a>
+
+                        <!-- ✅ Mostrar editar solo si NO es Vendedor ni Lector -->
+                        {% if not user|has_group:"Vendedor" and not user|has_group:"Lector" %}
+                            <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-sm btn-warning me-1">Editar</a>
+                        {% endif %}
+
+
+                        {% if not user|has_group:"Vendedor" and not user|has_group:"Lector" %}
+                            <!-- <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a> -->
+                            <form method="post" action="{% url 'pedidos:pedido_eliminar' pedido.id %}" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro?')">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        {% endif %}
+                    </td>
+
+
+
+
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No se encontraron pedidos.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Tarjetas para móviles -->
+<div class="d-block d-md-none">
+    {% for pedido in page_obj %}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>ID:</strong> #{{ pedido.id }}</li>
+                    <li class="list-group-item"><strong>Cliente:</strong> {{ pedido.cliente_nombre }}</li>
+                    <li class="list-group-item"><strong>DNI:</strong> {{ pedido.cliente_dni }}</li>
+                    <li class="list-group-item"><strong>Fecha:</strong> {{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</li>
+                    <li class="list-group-item"><strong>Total:</strong> S/. {{ pedido.total|floatformat:2 }}</li>
+                    <li class="list-group-item"><strong>Comprobante:</strong> {{ pedido.tipo_comprobante }}</li>
+                    <li class="list-group-item">
+                        <div class="d-grid gap-2 mt-2">
+                            <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn btn-info">
+                                <i class="bi bi-eye me-2"></i> Ver Pedido
+                            </a>
+                            {% if not user|has_group:"Lector" %}
+                                <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-warning">
+                                    <i class="bi bi-pencil me-2"></i> Editar
+                                </a>
+                                <form method="post" action="{% url 'pedidos:pedido_eliminar' pedido.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('¿Estás seguro?')">
+                                        <i class="bi bi-trash me-2"></i> Eliminar
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Paginación -->
+<nav aria-label="Paginación">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1
+                    {% if id_pedido and id_pedido != 'None' %}&id_pedido={{ id_pedido }}{% endif %}
+                    {% if cliente and cliente != 'None' %}&cliente={{ cliente }}{% endif %}
+                    {% if fecha_inicio and fecha_inicio != 'None' %}&fecha_inicio={{ fecha_inicio }}{% endif %}
+                    {% if fecha_fin and fecha_fin != 'None' %}&fecha_fin={{ fecha_fin }}{% endif %}
+                    {% if fecha_dia and fecha_dia != 'None' %}&fecha_dia={{ fecha_dia }}{% endif %}
+                ">&laquo; Primera</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}
+                    {% if id_pedido and id_pedido != 'None' %}&id_pedido={{ id_pedido }}{% endif %}
+                    {% if cliente and cliente != 'None' %}&cliente={{ cliente }}{% endif %}
+                    {% if fecha_inicio and fecha_inicio != 'None' %}&fecha_inicio={{ fecha_inicio }}{% endif %}
+                    {% if fecha_fin and fecha_fin != 'None' %}&fecha_fin={{ fecha_fin }}{% endif %}
+                    {% if fecha_dia and fecha_dia != 'None' %}&fecha_dia={{ fecha_dia }}{% endif %}
+                ">Anterior</a>
+            </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <a class="page-link" href="#">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</a>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}
+                    {% if id_pedido and id_pedido != 'None' %}&id_pedido={{ id_pedido }}{% endif %}
+                    {% if cliente and cliente != 'None' %}&cliente={{ cliente }}{% endif %}
+                    {% if fecha_inicio and fecha_inicio != 'None' %}&fecha_inicio={{ fecha_inicio }}{% endif %}
+                    {% if fecha_fin and fecha_fin != 'None' %}&fecha_fin={{ fecha_fin }}{% endif %}
+                    {% if fecha_dia and fecha_dia != 'None' %}&fecha_dia={{ fecha_dia }}{% endif %}
+                ">Siguiente</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}
+                    {% if id_pedido and id_pedido != 'None' %}&id_pedido={{ id_pedido }}{% endif %}
+                    {% if cliente and cliente != 'None' %}&cliente={{ cliente }}{% endif %}
+                    {% if fecha_inicio and fecha_inicio != 'None' %}&fecha_inicio={{ fecha_inicio }}{% endif %}
+                    {% if fecha_fin and fecha_fin != 'None' %}&fecha_fin={{ fecha_fin }}{% endif %}
+                    {% if fecha_dia and fecha_dia != 'None' %}&fecha_dia={{ fecha_dia }}{% endif %}
+                ">Última &raquo;</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+
+{% endblock %}
+
+
+
+
+
+
+
+
