@@ -21,16 +21,24 @@ def get_filtered_pedidos(request):
     queryset = Pedido.objects.all().order_by('-fecha_pedido')
 
     # Filtros
-    id_pedido = request.GET.get('id_pedido')
+    id_min = request.GET.get('id_min')
+    id_max = request.GET.get('id_max')
     cliente = request.GET.get('cliente')
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
     fecha_dia = request.GET.get('fecha_dia')
 
-    if id_pedido and id_pedido != "None":
+    if id_min and id_min != "None":
         try:
-            pedido_id = int(id_pedido)
-            queryset = queryset.filter(id=pedido_id)
+            val_min = int(id_min)
+            queryset = queryset.filter(id__gte=val_min)
+        except ValueError:
+            pass
+
+    if id_max and id_max != "None":
+        try:
+            val_max = int(id_max)
+            queryset = queryset.filter(id__lte=val_max)
         except ValueError:
             pass
 
@@ -60,7 +68,8 @@ def get_filtered_pedidos(request):
         queryset = queryset.filter(fecha_pedido__date=fecha_dia)
 
     return queryset, {
-        'id_pedido': id_pedido,
+        'id_min': id_min,
+        'id_max': id_max,
         'cliente': cliente,
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin,
@@ -76,8 +85,21 @@ def pedido_historial(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Calcular totales del queryset filtrado
+    # Importante: Calcular total_monto por separado para evitar duplicados por el join con detallepedido
+    resumen_pedidos = queryset.aggregate(total_monto=Sum('total'))
+    
+    # Calcular cantidad total de items (esto hace join, está bien para items)
+    resumen_items = queryset.aggregate(total_qty=Sum('detallepedido__cantidad'))
+
+    # Desglose por tipo de comprobante
+    resumen_tipos = queryset.values('tipo_comprobante').annotate(total=Count('id')).order_by('tipo_comprobante')
+
     context = {
         'page_obj': page_obj,
+        'total_monto': resumen_pedidos['total_monto'],
+        'total_items': resumen_items['total_qty'],
+        'resumen_tipos': resumen_tipos,
     }
     context.update(filtros) # Agregar los filtros al contexto
 

@@ -1,276 +1,267 @@
 {% extends "base.html" %}
 {% load group_tags %}
+
 {% block title %}Historial de Pedidos{% endblock %}
+
 {% block content %}
 
-<!-- Mostrar mensajes -->
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} d-flex align-items-center mb-4" role="alert">
-            {% if message.tags == 'success' %}
-                <i class="bi bi-check-circle-fill me-2"></i>
-            {% elif message.tags == 'error' %}
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            {% else %}
-                <i class="bi bi-info-circle-fill me-2"></i>
-            {% endif %}
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
-
-<h2 class="mb-4">Historial de Pedidos</h2>
-
-<!-- Filtros -->
-<form method="get" class="mb-4">
-    <div class="row g-3">
-        <!-- Buscar por ID -->
-        <div class="col-12 col-md-3">
-            <label class="form-label">Buscar por ID</label>
-            <input type="text"
-                   name="id_pedido"
-                   class="form-control"
-                   value="{{ id_pedido|default:'' }}"
-                   placeholder="Ej: 123">
-        </div>
-
-        <!-- Buscar por cliente o DNI -->
-        <div class="col-12 col-md-3">
-            <label class="form-label">Cliente o DNI</label>
-            <input type="text"
-                   name="cliente"
-                   class="form-control"
-                   value="{{ cliente|default:'' }}"
-                   placeholder="Nombre o DNI">
-        </div>
-
-        <!-- Fecha inicio -->
-        <div class="col-12 col-md-3">
-            <label class="form-label">Fecha inicio</label>
-            <input type="date"
-                   name="fecha_inicio"
-                   class="form-control"
-                   value="{{ fecha_inicio|default:'' }}">
-        </div>
-
-        <!-- Fecha fin -->
-        <div class="col-12 col-md-3">
-            <label class="form-label">Fecha fin</label>
-            <input type="date"
-                   name="fecha_fin"
-                   class="form-control"
-                   value="{{ fecha_fin|default:'' }}">
-        </div>
-
-        <!-- Buscar por día -->
-        <div class="col-12 col-md-3 mt-2">
-            <label class="form-label">Buscar por día</label>
-            <input type="date"
-                   name="fecha_dia"
-                   class="form-control"
-                   value="{{ fecha_dia|default:'' }}">
-        </div>
-    </div>
-
-    <!-- Botones de acción -->
-    <!-- Botones de acción -->
-    <div class="mt-3 d-grid gap-2 d-md-flex">
-        <button type="submit" class="btn btn-primary me-2">Filtrar</button>
-        <a href="{% url 'historial:pedido_historial' %}" class="btn btn-outline-secondary">Limpiar búsqueda</a>
-
-        <!-- Exportar a CSV -->
-        <a href="{% url 'historial:exportar_pedidos' %}?{{ request.GET.urlencode }}" class="btn btn-success">
-            <i class="bi bi-download me-2"></i> Descargar CSV
-        </a>
-
-        <!-- Exportar a Excel (Resumen) -->
-        <a href="{% url 'historial:exportar_pedidos_excel' %}?{{ request.GET.urlencode }}" class="btn btn-info text-white">
-            <i class="bi bi-file-earmark-spreadsheet me-2"></i> Excel (Resumen)
-        </a>
-
-        <!-- Exportar a Excel (Detalle) -->
-        <a href="{% url 'historial:exportar_pedidos_detalle_excel' %}?{{ request.GET.urlencode }}" class="btn btn-warning text-dark">
-            <i class="bi bi-table me-2"></i> Excel (Detallado)
-        </a>
-
-        <!-- Exportar a PDF -->
-        <a href="{% url 'historial:exportar_pedidos_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger">
-            <i class="bi bi-file-pdf me-2"></i> Exportar a PDF
-        </a>
-    </div>
-</form>
-
-<!-- Tabla responsive para escritorio -->
-<div class="table-responsive d-none d-md-block">
-    <table class="table table-striped align-middle">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>DNI</th>
-                <th>Fecha</th>
-                <th>Total</th>
-                <th>Comprobante</th>
-                <th>Cant. Tipo Productos</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for pedido in page_obj %}
-                <tr>
-                    <td>#{{ pedido.id }}</td>
-                    <td>{{ pedido.cliente_nombre }}</td>
-                    <td>{{ pedido.cliente_dni }}</td>
-                    <td>{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
-                    <td>S/. {{ pedido.total|floatformat:2 }}</td>
-                    <td>{{ pedido.tipo_comprobante }}</td>
-                    <td>{{ pedido.detallepedido_set.count }}</td>
-                    <!-- <td class="d-flex flex-wrap gap-2">
-                        <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn btn-sm btn-info w-100 w-md-auto">
-                            <i class="bi bi-eye"></i> Ver
-                        </a>
-                        {% if not user|has_group:"Lector" %}
-                            <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-sm btn-warning w-100 w-md-auto">
-                                <i class="bi bi-pencil"></i> Editar
-                            </a>
-                            <form method="post" action="{% url 'pedidos:pedido_eliminar' pedido.id %}" class="w-100 w-md-auto m-0">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-danger w-100 w-md-auto" onclick="return confirm('¿Estás seguro?')">
-                                    <i class="bi bi-trash"></i> Eliminar
-                                </button>
-                            </form>
-                        {% endif %}
-                    </td> -->
-                    <td class="d-flex gap-2 flex-wrap">
-                        <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn btn-sm btn-info">
-                            <i class="bi bi-eye"></i> Ver
-                        </a>
-
-                        <!-- ✅ Mostrar editar solo si NO es Vendedor ni Lector -->
-                        {% if not user|has_group:"Vendedor" and not user|has_group:"Lector" %}
-                            <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-sm btn-warning me-1">Editar</a>
-                        {% endif %}
-
-
-                        {% if not user|has_group:"Vendedor" and not user|has_group:"Lector" %}
-                            <!-- <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-sm btn-warning">
-                                <i class="bi bi-pencil"></i> Editar
-                            </a> -->
-                            <form method="post" action="{% url 'pedidos:pedido_eliminar' pedido.id %}" class="m-0">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro?')">
-                                    <i class="bi bi-trash"></i> Eliminar
-                                </button>
-                            </form>
-                        {% endif %}
-                    </td>
-
-
-
-
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center text-muted">No se encontraron pedidos.</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Header & Filtros -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold text-dark m-0">Historial de Pedidos</h2>
 </div>
 
-<!-- Tarjetas para móviles -->
-<div class="d-block d-md-none">
-    {% for pedido in page_obj %}
-        <div class="card mb-3 shadow-sm">
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><strong>ID:</strong> #{{ pedido.id }}</li>
-                    <li class="list-group-item"><strong>Cliente:</strong> {{ pedido.cliente_nombre }}</li>
-                    <li class="list-group-item"><strong>DNI:</strong> {{ pedido.cliente_dni }}</li>
-                    <li class="list-group-item"><strong>Fecha:</strong> {{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</li>
-                    <li class="list-group-item"><strong>Total:</strong> S/. {{ pedido.total|floatformat:2 }}</li>
-                    <li class="list-group-item"><strong>Comprobante:</strong> {{ pedido.tipo_comprobante }}</li>
-                    <li class="list-group-item">
-                        <div class="d-grid gap-2 mt-2">
-                            <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn btn-info">
-                                <i class="bi bi-eye me-2"></i> Ver Pedido
-                            </a>
-                            {% if not user|has_group:"Lector" %}
-                                <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-warning">
-                                    <i class="bi bi-pencil me-2"></i> Editar
-                                </a>
-                                <form method="post" action="{% url 'pedidos:pedido_eliminar' pedido.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('¿Estás seguro?')">
-                                        <i class="bi bi-trash me-2"></i> Eliminar
-                                    </button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    </li>
-                </ul>
+<!-- Card de Filtros Compacto -->
+<div class="card border shadow-sm mb-4 rounded-0">
+    <div class="card-body p-3 bg-light">
+        <form method="get" class="row g-2 align-items-end">
+            <!-- Rango ID -->
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-muted text-uppercase mb-1">Desde ID</label>
+                <input type="number" name="id_min" value="{{ id_min|default:'' }}" class="form-control form-control-sm" placeholder="Min">
             </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-muted text-uppercase mb-1">Hasta ID</label>
+                <input type="number" name="id_max" value="{{ id_max|default:'' }}" class="form-control form-control-sm" placeholder="Max">
+            </div>
+
+            <!-- Cliente -->
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-bold text-muted text-uppercase mb-1">Cliente</label>
+                <input type="text" name="cliente" value="{{ cliente|default:'' }}" class="form-control form-control-sm" placeholder="Nombre o DNI">
+            </div>
+
+            <!-- Rango Fechas -->
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-muted text-uppercase mb-1">Desde</label>
+                <input type="date" name="fecha_inicio" value="{{ fecha_inicio|default:'' }}" class="form-control form-control-sm">
+            </div>
+            <div class="col-6 col-md-1"> <!-- Reducido un poco para dar espacio -->
+                <label class="form-label small fw-bold text-muted text-uppercase mb-1">Hasta</label>
+                <input type="date" name="fecha_fin" value="{{ fecha_fin|default:'' }}" class="form-control form-control-sm">
+            </div>
+
+            <!-- Botones -->
+            <div class="col-12 col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-dark btn-sm w-100 fw-bold">
+                    <i class="bi bi-funnel-fill me-1"></i>
+                </button>
+                <a href="{% url 'historial:pedido_historial' %}" class="btn btn-outline-secondary btn-sm w-100" title="Limpiar">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resumen de Filtros -->
+{% if id_min or id_max or cliente or fecha_inicio or fecha_fin or fecha_dia %}
+<div class="alert alert-info border-info py-2 mb-3 shadow-sm rounded-0">
+    <div class="row align-items-center gy-2">
+        <!-- Izquierda: Conteo y Desglose -->
+        <div class="col-12 col-lg-8">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <div>
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    <strong>Resumen:</strong>
+                    <span class="ms-1"><strong>{{ page_obj.paginator.count }}</strong> pedidos encontrados.</span>
+                </div>
+                
+                <!-- Desglose por Tipo -->
+                {% if resumen_tipos %}
+                <div class="d-flex flex-wrap gap-2 ms-lg-3 ps-lg-3 border-start-lg border-secondary small text-muted">
+                    {% for tipo in resumen_tipos %}
+                        <span class="text-nowrap">
+                            {{ tipo.tipo_comprobante|title }}: <strong>{{ tipo.total }}</strong>
+                        </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Derecha: Totales Monetarios -->
+        <div class="col-12 col-lg-4">
+            <div class="d-flex justify-content-lg-end gap-3 border-top border-top-lg-0 pt-2 pt-lg-0 mt-lg-0">
+                <div class="text-lg-end">
+                    <small class="text-uppercase fw-bold text-muted d-block lh-1" style="font-size: 0.65rem;">Total Monto</small>
+                    <span class="fw-bold fs-6 text-dark">S/. {{ total_monto|default:0|floatformat:2 }}</span>
+                </div>
+                <div class="text-lg-end border-start ps-3">
+                    <small class="text-uppercase fw-bold text-muted d-block lh-1" style="font-size: 0.65rem;">Total Items</small>
+                    <span class="fw-bold fs-6 text-dark">{{ total_items|default:0 }} und.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Barra de Herramientas (Exportar) -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="small text-muted">
+        {% if page_obj %}
+            Mostrando <strong>{{ page_obj.start_index }}</strong> - <strong>{{ page_obj.end_index }}</strong> de <strong>{{ page_obj.paginator.count }}</strong> pedidos
+            <span class="ms-1 border-start ps-2">Total Items en esta vista: <strong>{{ total_items|default:0 }}</strong></span>
+        {% else %}
+            No hay resultados
+        {% endif %}
+    </div>
+    <div class="btn-group btn-group-sm">
+        <a href="{% url 'historial:exportar_pedidos_excel' %}?id_min={{ id_min|default:'' }}&id_max={{ id_max|default:'' }}&cliente={{ cliente|default:'' }}&fecha_inicio={{ fecha_inicio|default:'' }}&fecha_fin={{ fecha_fin|default:'' }}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Resumen
+        </a>
+        <a href="{% url 'historial:exportar_pedidos_detalle_excel' %}?id_min={{ id_min|default:'' }}&id_max={{ id_max|default:'' }}&cliente={{ cliente|default:'' }}&fecha_inicio={{ fecha_inicio|default:'' }}&fecha_fin={{ fecha_fin|default:'' }}" class="btn btn-success text-white">
+            <i class="bi bi-table me-1"></i> Detallado
+        </a>
+        <a href="{% url 'historial:exportar_pedidos_pdf' %}?id_min={{ id_min|default:'' }}&id_max={{ id_max|default:'' }}&cliente={{ cliente|default:'' }}&fecha_inicio={{ fecha_inicio|default:'' }}&fecha_fin={{ fecha_fin|default:'' }}" class="btn btn-outline-danger">
+            <i class="bi bi-file-pdf me-1"></i> PDF
+        </a>
+    </div>
+</div>
+
+<!-- VISTA ESCRITORIO (Compact Excel Style) -->
+<div class="card border shadow-sm d-none d-md-block overflow-hidden rounded-0">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-sm align-middle mb-0" style="font-size: 0.85rem;">
+            <thead class="bg-light text-dark">
+                <tr>
+                    <th class="py-2 px-2 text-center" style="width: 5%; background-color: #e9ecef;">ID</th>
+                    <th class="py-2 px-2" style="width: 15%; background-color: #e9ecef;">FECHA</th>
+                    <th class="py-2 px-2" style="width: 25%; background-color: #e9ecef;">CLIENTE</th>
+                    <th class="py-2 px-2" style="width: 25%; background-color: #e9ecef;">DIRECCIÓN</th>
+                    <th class="py-2 px-2 text-center bg-light text-dark" style="width: 10%;">TIPO</th>
+                    <th class="py-2 px-2 text-center bg-light text-dark" style="width: 10%;">ITEMs</th>
+                    <th class="py-2 px-2 text-end bg-light text-dark" style="width: 10%;">TOTAL</th>
+                    <th class="py-2 px-2 text-center bg-light text-dark" style="width: 10%;">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in page_obj %}
+                <tr>
+                    <td class="px-2 text-center font-monospace fw-bold">{{ pedido.id }}</td>
+                    <td class="px-2 font-monospace">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
+                    <td class="px-2">
+                        <span class="fw-bold text-dark">{{ pedido.cliente_nombre }}</span>
+                        {% if pedido.cliente_dni %}
+                            <small class="text-muted d-block">{{ pedido.cliente_dni }}</small>
+                        {% endif %}
+                    </td>
+                    <td class="px-2 small text-truncate" style="max-width: 200px;" title="{{ pedido.direccion }}">
+                        {{ pedido.direccion|default:"-" }}
+                    </td>
+                    <td class="px-2 text-center">
+                        {% if pedido.tipo_comprobante == 'BOLETA' %}
+                            <span class="badge bg-info text-dark border bg-opacity-25 w-100">Boleta</span>
+                        {% elif pedido.tipo_comprobante == 'FACTURA' %}
+                            <span class="badge bg-primary text-primary border bg-opacity-10 w-100">Factura</span>
+                        {% elif pedido.tipo_comprobante == 'NOTA_VENTA' %}
+                            <span class="badge bg-warning text-dark border bg-opacity-25 w-100">Nota de Venta</span>
+                        {% elif pedido.tipo_comprobante == 'TICKET' %}
+                            <span class="badge bg-success text-success border bg-opacity-10 w-100">Ticket</span>
+                        {% elif pedido.tipo_comprobante == 'COTIZACION' %}
+                            <span class="badge bg-secondary text-secondary border bg-opacity-10 w-100">Cotización</span>
+                        {% else %}
+                            <span class="badge bg-dark text-dark border bg-opacity-10 w-100">{{ pedido.get_tipo_comprobante_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-2 text-center font-monospace">
+                        {{ pedido.detallepedido_set.count }}
+                    </td>
+                    <td class="px-2 text-end font-monospace fw-bold text-success">
+                        S/. {{ pedido.total|floatformat:2 }}
+                    </td>
+                    <td class="px-2 text-center">
+                        <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn btn-outline-primary btn-sm py-0" title="Ver Detalle">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">
+                        No se encontraron pedidos con estos filtros.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- VISTA MÓVIL (Cards) -->
+<div class="d-md-none">
+    {% for pedido in page_obj %}
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="badge bg-secondary mb-1">#{{ pedido.id }}</span>
+                        <h6 class="card-title fw-bold mb-0">{{ pedido.cliente_nombre }}</h6>
+                        <small class="text-muted">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fs-5 fw-bold text-success">S/. {{ pedido.total|floatformat:2 }}</div>
+                        {% if pedido.tipo_comprobante == 'BOLETA' %}
+                            <span class="badge bg-info text-dark border bg-opacity-25">Boleta</span>
+                        {% elif pedido.tipo_comprobante == 'FACTURA' %}
+                            <span class="badge bg-primary text-primary border bg-opacity-10">Factura</span>
+                        {% elif pedido.tipo_comprobante == 'NOTA_VENTA' %}
+                            <span class="badge bg-warning text-dark border bg-opacity-25">Nota de Venta</span>
+                        {% elif pedido.tipo_comprobante == 'TICKET' %}
+                            <span class="badge bg-success text-success border bg-opacity-10">Ticket</span>
+                        {% elif pedido.tipo_comprobante == 'COTIZACION' %}
+                            <span class="badge bg-secondary text-secondary border bg-opacity-10">Cotización</span>
+                        {% else %}
+                            <span class="badge bg-dark text-dark border bg-opacity-10">{{ pedido.get_tipo_comprobante_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="d-grid mt-3">
+                    <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn btn-outline-primary btn-sm">
+                        Ver Detalle completo
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="text-center py-5 text-muted">
+            <p>No se encontraron pedidos.</p>
         </div>
     {% endfor %}
 </div>
 
 <!-- Paginación -->
-<nav aria-label="Paginación">
-    <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page=1
-                    {% if id_pedido and id_pedido != 'None' %}&id_pedido={{ id_pedido }}{% endif %}
-                    {% if cliente and cliente != 'None' %}&cliente={{ cliente }}{% endif %}
-                    {% if fecha_inicio and fecha_inicio != 'None' %}&fecha_inicio={{ fecha_inicio }}{% endif %}
-                    {% if fecha_fin and fecha_fin != 'None' %}&fecha_fin={{ fecha_fin }}{% endif %}
-                    {% if fecha_dia and fecha_dia != 'None' %}&fecha_dia={{ fecha_dia }}{% endif %}
-                ">&laquo; Primera</a>
+{% if page_obj.has_other_pages %}
+<div class="mt-4">
+    <nav aria-label="Navegación">
+        <ul class="pagination pagination-sm justify-content-center">
+            <!-- Anterior -->
+            <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                <a class="page-link border-0 rounded-start" href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}&id_min={{ id_min|default:'' }}&id_max={{ id_max|default:'' }}&cliente={{ cliente|default:'' }}&fecha_inicio={{ fecha_inicio|default:'' }}&fecha_fin={{ fecha_fin|default:'' }}{% else %}#{% endif %}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
             </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}
-                    {% if id_pedido and id_pedido != 'None' %}&id_pedido={{ id_pedido }}{% endif %}
-                    {% if cliente and cliente != 'None' %}&cliente={{ cliente }}{% endif %}
-                    {% if fecha_inicio and fecha_inicio != 'None' %}&fecha_inicio={{ fecha_inicio }}{% endif %}
-                    {% if fecha_fin and fecha_fin != 'None' %}&fecha_fin={{ fecha_fin }}{% endif %}
-                    {% if fecha_dia and fecha_dia != 'None' %}&fecha_dia={{ fecha_dia }}{% endif %}
-                ">Anterior</a>
-            </li>
-        {% endif %}
 
-        <li class="page-item disabled">
-            <a class="page-link" href="#">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</a>
-        </li>
+            <!-- Páginas -->
+            {% for i in page_obj.paginator.page_range %}
+                {% if i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                    <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                        <a class="page-link border-0 rounded-circle mx-1 text-center" style="width: 30px; height: 30px; line-height: 20px;" href="?page={{ i }}&id_min={{ id_min|default:'' }}&id_max={{ id_max|default:'' }}&cliente={{ cliente|default:'' }}&fecha_inicio={{ fecha_inicio|default:'' }}&fecha_fin={{ fecha_fin|default:'' }}">
+                            {{ i }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
 
-        {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}
-                    {% if id_pedido and id_pedido != 'None' %}&id_pedido={{ id_pedido }}{% endif %}
-                    {% if cliente and cliente != 'None' %}&cliente={{ cliente }}{% endif %}
-                    {% if fecha_inicio and fecha_inicio != 'None' %}&fecha_inicio={{ fecha_inicio }}{% endif %}
-                    {% if fecha_fin and fecha_fin != 'None' %}&fecha_fin={{ fecha_fin }}{% endif %}
-                    {% if fecha_dia and fecha_dia != 'None' %}&fecha_dia={{ fecha_dia }}{% endif %}
-                ">Siguiente</a>
+            <!-- Siguiente -->
+            <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                <a class="page-link border-0 rounded-end" href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }}&id_min={{ id_min|default:'' }}&id_max={{ id_max|default:'' }}&cliente={{ cliente|default:'' }}&fecha_inicio={{ fecha_inicio|default:'' }}&fecha_fin={{ fecha_fin|default:'' }}{% else %}#{% endif %}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
             </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}
-                    {% if id_pedido and id_pedido != 'None' %}&id_pedido={{ id_pedido }}{% endif %}
-                    {% if cliente and cliente != 'None' %}&cliente={{ cliente }}{% endif %}
-                    {% if fecha_inicio and fecha_inicio != 'None' %}&fecha_inicio={{ fecha_inicio }}{% endif %}
-                    {% if fecha_fin and fecha_fin != 'None' %}&fecha_fin={{ fecha_fin }}{% endif %}
-                    {% if fecha_dia and fecha_dia != 'None' %}&fecha_dia={{ fecha_dia }}{% endif %}
-                ">Última &raquo;</a>
-            </li>
-        {% endif %}
-    </ul>
-</nav>
+        </ul>
+    </nav>
+</div>
+{% endif %}
 
 {% endblock %}
-
-
-
-
-
-
-
-

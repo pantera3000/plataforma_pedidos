@@ -48,13 +48,17 @@ def producto_list(request):
         productos = productos.order_by('nombre')
     elif orden == 'nombre_desc':
         productos = productos.order_by('-nombre')
-    elif orden == 'precio_asc':
-        productos = productos.order_by('precio')
     elif orden == 'precio_desc':
         productos = productos.order_by('-precio')
 
+    # Paginación (50 productos por página)
+    paginator = Paginator(productos, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'productos/producto_list.html', {
-        'productos': productos,
+        'productos': page_obj, # Para que el bucle for siga funcionando igual
+        'page_obj': page_obj,  # Para los controles de paginación
         'query': query,
         'orden': orden
     })
