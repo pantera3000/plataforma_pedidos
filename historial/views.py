@@ -66,7 +66,7 @@ def get_filtered_pedidos(request):
 
     if fecha_dia and fecha_dia != "None":
         queryset = queryset.filter(fecha_pedido__date=fecha_dia)
-
+    
     return queryset, {
         'id_min': id_min,
         'id_max': id_max,
@@ -80,12 +80,7 @@ def get_filtered_pedidos(request):
 def pedido_historial(request):
     queryset, filtros = get_filtered_pedidos(request)
 
-    # Paginación
-    paginator = Paginator(queryset, 20)  # 20 pedidos por página
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    # Calcular totales del queryset filtrado
+    # Calcular totales del queryset filtrado (USANDO QUERYSET LIMPIO)
     # Importante: Calcular total_monto por separado para evitar duplicados por el join con detallepedido
     resumen_pedidos = queryset.aggregate(total_monto=Sum('total'))
     
@@ -94,6 +89,17 @@ def pedido_historial(request):
 
     # Desglose por tipo de comprobante
     resumen_tipos = queryset.values('tipo_comprobante').annotate(total=Count('id')).order_by('tipo_comprobante')
+
+    # Anotar para el listado (AHORA SÍ, DESPUÉS DE LOS TOTALES)
+    queryset = queryset.annotate(
+        n_items=Count('detallepedido', distinct=True),
+        n_unidades=Sum('detallepedido__cantidad')
+    )
+
+    # Paginación
+    paginator = Paginator(queryset, 20)  # 20 pedidos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     context = {
         'page_obj': page_obj,
@@ -148,7 +154,7 @@ def exportar_pedidos_excel(request):
     ws.title = "Historial de Pedidos"
 
     # Encabezados
-    headers = ['ID', 'Cliente', 'DNI', 'Fecha Pedido', 'Dirección', 'Tipo Comprobante', 'Total', 'Notas']
+    headers = ['ID', 'Cliente', 'DNI', 'Fecha Pedido', 'Dirección', 'Tipo Comprobante', 'Items', 'Unidades', 'Total', 'Notas']
     ws.append(headers)
 
     # Estilo de encabezado (opcional)
@@ -158,6 +164,13 @@ def exportar_pedidos_excel(request):
 
     # Datos
     pedidos, _ = get_filtered_pedidos(request) # Usar el helper
+    
+    # Anotar cantidad de items y unidades
+    pedidos = pedidos.annotate(
+        n_items=Count('detallepedido'),
+        n_unidades=Sum('detallepedido__cantidad')
+    )
+
     for pedido in pedidos:
         ws.append([
             pedido.id,
@@ -166,6 +179,8 @@ def exportar_pedidos_excel(request):
             pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M'),
             pedido.direccion or "",
             pedido.get_tipo_comprobante_display(),
+            pedido.n_items or 0,        # Columna Items
+            pedido.n_unidades or 0,     # Columna Unidades
             float(pedido.total),
             pedido.notas or ""
         ])

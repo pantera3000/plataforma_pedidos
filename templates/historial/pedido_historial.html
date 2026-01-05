@@ -59,11 +59,29 @@
     <div class="row align-items-center gy-2">
         <!-- Izquierda: Conteo y Desglose -->
         <div class="col-12 col-lg-8">
-            <div class="d-flex align-items-center flex-wrap gap-2">
-                <div>
-                    <i class="bi bi-info-circle-fill me-1"></i>
-                    <strong>Resumen:</strong>
-                    <span class="ms-1"><strong>{{ page_obj.paginator.count }}</strong> pedidos encontrados.</span>
+            <div class="d-flex flex-column gap-1">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <div>
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        <strong>Resumen:</strong>
+                        <span class="ms-1"><strong>{{ page_obj.paginator.count }}</strong> pedidos encontrados.</span>
+                    </div>
+
+                    <!-- Filtros Activos (Texto) -->
+                    <div class="ms-lg-2 ps-lg-2 border-start-lg border-secondary small">
+                        {% if id_min or id_max %}
+                            <span class="badge bg-light text-dark border me-1">ID: {{ id_min|default:'...' }} - {{ id_max|default:'...' }}</span>
+                        {% endif %}
+                        {% if cliente %}
+                            <span class="badge bg-light text-dark border me-1">Cliente: {{ cliente }}</span>
+                        {% endif %}
+                        {% if fecha_inicio or fecha_fin %}
+                            <span class="badge bg-light text-dark border me-1">Fecha: {{ fecha_inicio|default:'...' }} al {{ fecha_fin|default:'...' }}</span>
+                        {% endif %}
+                        {% if fecha_dia %}
+                            <span class="badge bg-light text-dark border me-1">Día: {{ fecha_dia }}</span>
+                        {% endif %}
+                    </div>
                 </div>
                 
                 <!-- Desglose por Tipo -->
@@ -130,7 +148,7 @@
                     <th class="py-2 px-2" style="width: 25%; background-color: #e9ecef;">CLIENTE</th>
                     <th class="py-2 px-2" style="width: 25%; background-color: #e9ecef;">DIRECCIÓN</th>
                     <th class="py-2 px-2 text-center bg-light text-dark" style="width: 10%;">TIPO</th>
-                    <th class="py-2 px-2 text-center bg-light text-dark" style="width: 10%;">ITEMs</th>
+                    <th class="py-2 px-2 text-center bg-light text-dark" style="width: 12%;">ITEMS / UNDS</th>
                     <th class="py-2 px-2 text-end bg-light text-dark" style="width: 10%;">TOTAL</th>
                     <th class="py-2 px-2 text-center bg-light text-dark" style="width: 10%;">ACCIONES</th>
                 </tr>
@@ -161,16 +179,17 @@
                         {% elif pedido.tipo_comprobante == 'COTIZACION' %}
                             <span class="badge bg-secondary text-secondary border bg-opacity-10 w-100">Cotización</span>
                         {% else %}
-                            <span class="badge bg-dark text-dark border bg-opacity-10 w-100">{{ pedido.get_tipo_comprobante_display }}</span>
+                            <span class="badge bg-light text-dark border w-100">{{ pedido.tipo_comprobante }}</span>
                         {% endif %}
                     </td>
-                    <td class="px-2 text-center font-monospace">
-                        {{ pedido.detallepedido_set.count }}
+                    <td class="px-2 text-center align-middle">
+                        <div class="fw-bold text-dark">{{ pedido.n_items }}</div>
+                        <small class="text-muted d-block" style="font-size: 0.7em;">{{ pedido.n_unidades|default:0 }} unds.</small>
                     </td>
-                    <td class="px-2 text-end font-monospace fw-bold text-success">
+                    <td class="px-2 text-end font-monospace align-middle text-nowrap">
                         S/. {{ pedido.total|floatformat:2 }}
                     </td>
-                    <td class="px-2 text-center">
+                    <td class="px-2 text-center align-middle">
                         <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn btn-outline-primary btn-sm py-0" title="Ver Detalle">
                             <i class="bi bi-eye"></i>
                         </a>
@@ -197,7 +216,14 @@
                     <div>
                         <span class="badge bg-secondary mb-1">#{{ pedido.id }}</span>
                         <h6 class="card-title fw-bold mb-0">{{ pedido.cliente_nombre }}</h6>
-                        <small class="text-muted">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</small>
+                        <small class="text-muted d-block mb-1">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</small>
+                        
+                        <!-- Items y Unidades Mobil -->
+                        <div class="small bg-light rounded px-2 py-1 d-inline-block border">
+                            <i class="bi bi-box-seam me-1 text-muted"></i>
+                            <span class="fw-bold">{{ pedido.n_items }}</span> ítems
+                            <span class="text-muted ms-1">({{ pedido.n_unidades|default:0 }} unds.)</span>
+                        </div>
                     </div>
                     <div class="text-end">
                         <div class="fs-5 fw-bold text-success">S/. {{ pedido.total|floatformat:2 }}</div>
