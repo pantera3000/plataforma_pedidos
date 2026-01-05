@@ -146,6 +146,8 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 from datetime import datetime
 
+from django.utils.timezone import localtime
+
 @login_required
 def exportar_pedidos_excel(request):
     # Crear libro de trabajo
@@ -172,11 +174,13 @@ def exportar_pedidos_excel(request):
     )
 
     for pedido in pedidos:
+        # Convertir a hora local antes de formatear
+        fecha_local = localtime(pedido.fecha_pedido)
         ws.append([
             pedido.id,
             pedido.cliente_nombre,
             pedido.cliente_dni or "",
-            pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M'),
+            fecha_local.strftime('%d/%m/%Y %H:%M'),
             pedido.direccion or "",
             pedido.get_tipo_comprobante_display(),
             pedido.n_items or 0,        # Columna Items
@@ -247,12 +251,15 @@ def exportar_pedidos_detalle_excel(request):
         # Determinar color de fondo para ESTE pedido (y todos sus productos)
         row_fill = fill_even if i % 2 == 0 else fill_odd
         
+        # Convertir fecha a local
+        fecha_local = localtime(pedido.fecha_pedido)
+        
         detalles = pedido.detallepedido_set.all()
         
         if not detalles:
             ws.append([
                 pedido.id,
-                pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M'),
+                fecha_local.strftime('%d/%m/%Y %H:%M'),
                 pedido.cliente_nombre,
                 pedido.cliente_dni or "",
                 "(Sin productos)", "", 0, 0, 0,
@@ -266,7 +273,7 @@ def exportar_pedidos_detalle_excel(request):
             for detalle in detalles:
                 ws.append([
                     pedido.id,
-                    pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M'),
+                    fecha_local.strftime('%d/%m/%Y %H:%M'),
                     pedido.cliente_nombre,
                     pedido.cliente_dni or "",
                     detalle.producto.nombre,
