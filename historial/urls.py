@@ -9,6 +9,7 @@ urlpatterns = [
 
 
     path('exportar/excel/', views.exportar_pedidos_excel, name='exportar_pedidos_excel'),
+    path('exportar/excel-detalle/', views.exportar_pedidos_detalle_excel, name='exportar_pedidos_detalle_excel'),
     path('exportar/pdf/', views.exportar_pedidos_pdf, name='exportar_pedidos_pdf'),
 
 ]

@@ -79,17 +79,22 @@
         <a href="{% url 'historial:pedido_historial' %}" class="btn btn-outline-secondary">Limpiar búsqueda</a>
 
         <!-- Exportar a CSV -->
-        <a href="{% url 'historial:exportar_pedidos' %}" class="btn btn-success">
+        <a href="{% url 'historial:exportar_pedidos' %}?{{ request.GET.urlencode }}" class="btn btn-success">
             <i class="bi bi-download me-2"></i> Descargar CSV
         </a>
 
-        <!-- Exportar a Excel -->
-        <a href="{% url 'historial:exportar_pedidos_excel' %}" class="btn btn-info text-white">
-            <i class="bi bi-file-earmark-spreadsheet me-2"></i> Exportar a Excel
+        <!-- Exportar a Excel (Resumen) -->
+        <a href="{% url 'historial:exportar_pedidos_excel' %}?{{ request.GET.urlencode }}" class="btn btn-info text-white">
+            <i class="bi bi-file-earmark-spreadsheet me-2"></i> Excel (Resumen)
+        </a>
+
+        <!-- Exportar a Excel (Detalle) -->
+        <a href="{% url 'historial:exportar_pedidos_detalle_excel' %}?{{ request.GET.urlencode }}" class="btn btn-warning text-dark">
+            <i class="bi bi-table me-2"></i> Excel (Detallado)
         </a>
 
         <!-- Exportar a PDF -->
-        <a href="{% url 'historial:exportar_pedidos_pdf' %}" class="btn btn-danger">
+        <a href="{% url 'historial:exportar_pedidos_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger">
             <i class="bi bi-file-pdf me-2"></i> Exportar a PDF
         </a>
     </div>
