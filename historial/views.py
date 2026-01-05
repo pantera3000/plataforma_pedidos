@@ -72,7 +72,7 @@ def pedido_historial(request):
     queryset, filtros = get_filtered_pedidos(request)
 
     # Paginación
-    paginator = Paginator(queryset, 10)  # 10 pedidos por página
+    paginator = Paginator(queryset, 20)  # 20 pedidos por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
