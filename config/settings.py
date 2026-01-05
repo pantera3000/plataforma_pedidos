@@ -14,8 +14,11 @@ SECRET_KEY = 'django-insecure-w3_$jolr@6_m@_aih$ul&7_jqqq@hycnt-0b+5m+e#ato2gir=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    'nativa.pythonanywhere.com',  # 👈 Dominio en PythonAnywhere
+]
 
 # Application definition
 
@@ -31,7 +34,7 @@ INSTALLED_APPS = [
     'pedidos',
     'historial',
     'dashboard',
-    'usuarios', 
+    'usuarios',
 ]
 
 MIDDLEWARE = [

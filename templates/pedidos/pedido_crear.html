@@ -9,7 +9,7 @@
 <form id="form-pedido" method="post">
     {% csrf_token %}
     <input type="hidden" name="es_edicion" value="{% if es_edicion %}1{% endif %}">
-    
+
     <!-- Datos del cliente -->
     <div class="row g-3">
         <div class="col-12 col-md-4 mb-4">
@@ -33,12 +33,12 @@
                                name="{{ form.cliente_dni.name }}"
                                id="{{ form.cliente_dni.id_for_label }}"
                                class="form-control"
-                               required
+
                                value="{{ form.cliente_dni.value|default:'' }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">{{ form.direccion.label }}</label>
-                        <textarea name="{{ form.direccion.name }}" id="{{ form.direccion.id_for_label }}" class="form-control" rows="3" required>{{ form.direccion.value|default:'' }}</textarea>
+                        <textarea name="{{ form.direccion.name }}" id="{{ form.direccion.id_for_label }}" class="form-control" rows="3">{{ form.direccion.value|default:'' }}</textarea>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6 mb-3">
@@ -75,7 +75,7 @@
                             <i class="bi bi-search"></i> Buscar
                         </button>
                         <button class="btn btn-outline-danger" type="button" id="btn-limpiar-busqueda">
-                            <i class="bi bi-x-circle"></i> 
+                            <i class="bi bi-x-circle"></i>
                         </button>
                     </div>
 

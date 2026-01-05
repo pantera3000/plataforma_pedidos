@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Pedidos</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
+
+        @media print {
+            body {
+                font-size: 10pt;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #007BFF;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #007BFF;
+            font-size: 2.5em;
+        }
+        .info {
+            text-align: right;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Historial de Pedidos</h1>
+    </div>
+
+    <div class="info">
+        <p><strong>Exportado el:</strong> {{ fecha_exportacion }}</p>
+        <p><strong>Total de pedidos:</strong> {{ pedidos.count }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>DNI</th>
+                <th>Fecha</th>
+                <th>Dirección</th>
+                <th>Comprobante</th>
+                <th>Cant. Prod.</th> <!-- 👈 Nueva columna -->
+                <th>Total</th>
+                <th>Notas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+                <tr>
+                    <td>#{{ pedido.id }}</td>
+                    <td>{{ pedido.cliente_nombre }}</td>
+                    <td>{{ pedido.cliente_dni|default:"-" }}</td>
+                    <td>{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
+                    <td>{{ pedido.direccion|truncatechars:30|default:"-" }}</td>
+                    <td>{{ pedido.get_tipo_comprobante_display }}</td>
+                    <td class="text-center">{{ pedido.detallepedido_set.count }}</td> <!-- ✅ Cantidad de productos -->
+                    <td>S/. {{ pedido.total|floatformat:2 }}</td>
+                    <td>{{ pedido.notas|truncatechars:50|default:"-" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">No hay pedidos registrados.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Plataforma de Gestión de Pedidos</p>
+    </div>
+
+</body>
+</html>

@@ -102,7 +102,7 @@ def buscar_producto(request):
 def pedido_editar(request, pk):
     pedido = get_object_or_404(Pedido, pk=pk)
     pedido_id = pedido.id  # Guardamos el ID antes de eliminar
-    
+
     if request.method == "POST":
         form = PedidoForm(request.POST, instance=pedido)
         if form.is_valid():
@@ -176,6 +176,43 @@ def pedido_eliminar(request, pk):
 
 def es_vendedor(user):
     return user.groups.filter(name='Vendedor').exists()
+
+
+
+
+
+
+
+
+
+from django.http import HttpResponse
+from weasyprint import HTML
+from io import BytesIO
+
+@login_required
+def generar_pdf_pedido(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
+    detalles = pedido.detallepedido_set.all()
+
+    # Usar numero_pedido si existe, sino usar id
+    numero_pedido = getattr(pedido, 'numero_pedido', None) or pedido.id
+
+    # Renderizar plantilla HTML
+    html_string = render(request, 'pedidos/pedido_pdf.html', {
+        'pedido': pedido,
+        'detalles': detalles,
+        'numero_pedido': numero_pedido
+    }).content.decode('utf-8')
+
+    # Generar PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="pedido_{numero_pedido}.pdf"'
+
+    # Convertir HTML a PDF
+    HTML(string=html_string).write_pdf(response)
+
+    return response
+
 
 
 def acceso_denegado(request):

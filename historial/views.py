@@ -108,3 +108,89 @@ def exportar_pedidos(request):
 
 
 
+
+
+
+
+
+
+
+
+from django.http import HttpResponse
+from openpyxl import Workbook
+from datetime import datetime
+
+@login_required
+def exportar_pedidos_excel(request):
+    # Crear libro de trabajo
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Historial de Pedidos"
+
+    # Encabezados
+    headers = ['ID', 'Cliente', 'DNI', 'Fecha Pedido', 'Dirección', 'Tipo Comprobante', 'Total', 'Notas']
+    ws.append(headers)
+
+    # Estilo de encabezado (opcional)
+    from openpyxl.styles import Font
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+
+    # Datos
+    pedidos = Pedido.objects.all().order_by('-fecha_pedido')
+    for pedido in pedidos:
+        ws.append([
+            pedido.id,
+            pedido.cliente_nombre,
+            pedido.cliente_dni or "",
+            pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M'),
+            pedido.direccion or "",
+            pedido.get_tipo_comprobante_display(),
+            float(pedido.total),
+            pedido.notas or ""
+        ])
+
+    # Ajustar ancho de columnas
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)
+        ws.column_dimensions[column].width = adjusted_width
+
+    # Respuesta HTTP
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="pedidos_{datetime.now().strftime("%Y%m%d_%H%M")}.xlsx"'
+    wb.save(response)
+    return response
+
+
+from weasyprint import HTML
+import tempfile
+
+@login_required
+def exportar_pedidos_pdf(request):
+    pedidos = Pedido.objects.all().order_by('-fecha_pedido')
+
+    # Crear HTML para el PDF
+    html_string = render(request, 'historial/pedidos_pdf.html', {
+        'pedidos': pedidos,
+        'titulo': 'Historial de Pedidos',
+        'fecha_exportacion': timezone.now().strftime('%d/%m/%Y %H:%M')
+    }).content.decode('utf-8')
+
+    # Generar PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="historial_pedidos.pdf"'
+
+    HTML(string=html_string).write_pdf(response)
+
+    return response
+
+
+

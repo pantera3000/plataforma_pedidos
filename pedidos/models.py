@@ -12,9 +12,9 @@ class Pedido(models.Model):
     ]
 
     cliente_nombre = models.CharField(max_length=100)
-    cliente_dni = models.CharField(max_length=20)
+    cliente_dni = models.CharField(max_length=20, blank=True, null=True)  # ✅ Opcional
     cliente_empresa = models.CharField(max_length=100, blank=True, null=True)
-    direccion = models.TextField()
+    direccion = models.TextField(blank=True, null=True)  # ✅ Opcional
     tipo_comprobante = models.CharField(
         max_length=50,
         choices=TIPO_COMPROBANTE_CHOICES,

@@ -73,11 +73,24 @@
     </div>
 
     <!-- Botones de acción -->
+    <!-- Botones de acción -->
     <div class="mt-3 d-grid gap-2 d-md-flex">
         <button type="submit" class="btn btn-primary me-2">Filtrar</button>
         <a href="{% url 'historial:pedido_historial' %}" class="btn btn-outline-secondary">Limpiar búsqueda</a>
+
+        <!-- Exportar a CSV -->
         <a href="{% url 'historial:exportar_pedidos' %}" class="btn btn-success">
-            <i class="bi bi-download me-2"></i> Descargar Pedidos
+            <i class="bi bi-download me-2"></i> Descargar CSV
+        </a>
+
+        <!-- Exportar a Excel -->
+        <a href="{% url 'historial:exportar_pedidos_excel' %}" class="btn btn-info text-white">
+            <i class="bi bi-file-earmark-spreadsheet me-2"></i> Exportar a Excel
+        </a>
+
+        <!-- Exportar a PDF -->
+        <a href="{% url 'historial:exportar_pedidos_pdf' %}" class="btn btn-danger">
+            <i class="bi bi-file-pdf me-2"></i> Exportar a PDF
         </a>
     </div>
 </form>

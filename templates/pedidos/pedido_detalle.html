@@ -123,6 +123,15 @@
     <a href="{% url 'historial:pedido_historial' %}" class="btn btn-secondary w-100 w-md-auto me-md-2">Volver al Historial</a>
 
 
+    <!-- Botón Exportar a PDF -->
+    <a href="{% url 'pedidos:generar_pdf_pedido' pedido.id %}"
+       class="btn btn-info btn-sm w-100 w-md-auto me-md-2"
+       target="_blank">
+        <i class="bi bi-file-pdf"></i> Exportar a PDF
+    </a>
+
+
+
     <!-- {% if not user|has_group:"Vendedor" %}
         <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-warning btn-sm w-100 w-md-auto me-md-2">Editar</a>
     {% endif %} -->
@@ -136,7 +145,7 @@
         <a href="{% url 'pedidos:pedido_editar' pedido.id %}" class="btn btn-warning btn-sm w-100 w-md-auto me-md-2">Editar</a>
     {% endif %} -->
 
-    
+
     {% if not user|has_group:"Vendedor" and not user|has_group:"Lector" %}
         <form method="post" action="{% url 'pedidos:pedido_eliminar' pedido.id %}" class="d-inline">
             {% csrf_token %}

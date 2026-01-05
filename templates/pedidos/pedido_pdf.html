@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pedido #{{ numero_pedido }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #007BFF;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #007BFF;
+            font-size: 2.8em;
+            font-weight: bold;
+        }
+        .info-cliente {
+            margin-bottom: 25px;
+            line-height: 1.8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .total {
+            text-align: right;
+            font-size: 1.6em;
+            font-weight: bold;
+            margin-top: 30px;
+            color: #007BFF;
+        }
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .comprobante {
+            font-weight: bold;
+            color: #d9534f;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>PEDIDO #{{ numero_pedido }}</h1>
+        <p><strong>Fecha:</strong> {{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</p>
+        <p><strong>Productos en este pedido:</strong> {{ detalles.count }} producto{{ detalles.count|pluralize }}</p>
+    </div>
+
+    <div class="info-cliente">
+        <p><strong>Cliente:</strong> {{ pedido.cliente_nombre }}</p>
+        {% if pedido.cliente_dni %}
+            <p><strong>DNI/RUC:</strong> {{ pedido.cliente_dni }}</p>
+        {% endif %}
+        {% if pedido.cliente_empresa %}
+            <p><strong>Empresa:</strong> {{ pedido.cliente_empresa }}</p>
+        {% endif %}
+        <p><strong>Dirección:</strong> {{ pedido.direccion }}</p>
+        <p><strong>Tipo de Comprobante:</strong> <span class="comprobante">{{ pedido.get_tipo_comprobante_display }}</span></p>
+        {% if pedido.notas %}
+            <p><strong>Notas:</strong> {{ pedido.notas }}</p>
+        {% endif %}
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>SKU</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.producto.nombre }}</td>
+                    <td>{{ detalle.producto.sku }}</td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>S/. {{ detalle.producto.precio|floatformat:2 }}</td>
+                    <td>S/. {{ detalle.subtotal|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total">
+        Total: S/. {{ pedido.total|floatformat:2 }}
+    </div>
+
+    <div class="footer">
+        <p>Gracias por su compra</p>
+        <p>Generado desde Plataforma de Pedidos</p>
+    </div>
+
+</body>
+</html>

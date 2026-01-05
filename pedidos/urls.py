@@ -10,4 +10,5 @@ urlpatterns = [
     path('<int:pk>/eliminar/', views.pedido_eliminar, name='pedido_eliminar'),  # 👈 Corrige el typo: debe ser 'pedido_eliminar' (no 'pedido_elimnar')
     path('buscar-producto/', views.buscar_producto, name='buscar_producto'),  # 👈 Nueva ruta
     path('acceso-denegado/', views.acceso_denegado, name='acceso_denegado'),
+    path('<int:pk>/pdf/', views.generar_pdf_pedido, name='generar_pdf_pedido'),  # 👈 Nueva ruta
 ]
